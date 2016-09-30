@@ -1,0 +1,128 @@
+
+
+<script type="text/x-red" data-template-name="confluent in">
+    <div class="form-row">
+        <label for="node-input-proxy"><i class="icon-tag"></i> REST Proxy</label>
+        <input type="text" id="node-input-proxy">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="icon-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-cgroup"><i class="icon-tasks"></i> Group ID</label>
+        <input type="text" id="node-input-cgroup" placeholder="Group ID">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="confluent in">
+    <p>Confluent input node. Connects to a rest proxy and subscribes to the specified topic. The topic may contain wildcard regular expression.
+    </script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('confluent in',{
+       category: 'input',
+       defaults: {
+         name: {value:""},
+         topic: {value:"",required:true},
+         cgroup: {value:"node-red-confluent"},
+         autocommit: {value:true, required:true},
+         proxy: {type:"rest-proxy", required:true}
+       },
+       color:"#F07430",
+       inputs:0,
+       outputs:1,
+       icon: "confluent.png",
+       label: function() {
+       return this.name||this.topic||"confluent";
+       },
+       labelStyle: function() {
+       return this.name?"node_label_italic":"";
+       }
+    });
+                           
+</script>
+
+<script type="text/x-red" data-template-name="confluent out">
+    <div class="form-row">
+        <label for="node-input-proxy"><i class="icon-tag"></i> REST Proxy</label>
+        <input type="text" id="node-input-proxy">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="icon-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+        <div class="form-row">
+        <label for="node-input-key"><i class="icon-tasks"></i> Key</label>
+        <input type="text" id="node-input-key" placeholder="Key">
+    </div>
+        <div class="form-row">
+        <label for="node-input-partition"><i class="icon-tasks"></i> Partition</label>
+        <input type="number" id="node-input-partition" placeholder="Partition">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="confluent out">
+    <p>Connects to a Confluent REST proxy and publishes <b>msg.key</b> and <b>msg.payload</b> to <b>msg.topic</b> and <b>msg.partition</b> OR to the topic, partition, and key specified in the configuration window. Any values in the configuration window have precedence.
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('confluent out',{
+       category: 'output',
+       defaults: {
+         name: {value:""},
+         topic: {value:""},
+         key: {value:""},
+         partition: {value:null},
+         proxy: {type:"rest-proxy", required:true}
+       },
+       color:"#F07430",
+       inputs:1,
+       outputs:0,
+       icon: "confluent.png",
+       align: "right",
+       label: function() {
+       return this.name||this.topic||"confluent";
+       },
+       labelStyle: function() {
+       return this.name?"node_label_italic":"";
+       }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="rest-proxy">
+    <div class="form-row node-input-proxy">
+        <label for="node-config-input-proxy"><i class="icon-bookmark"></i> REST Proxy</label>
+        <input class="input-append-left" type="text" id="node-config-input-proxy" placeholder="http://localhost:8092" style="width: 40%;" >
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-clientid"><i class="icon-tag"></i> Client ID</label>
+        <input type="text" id="node-config-input-clientid" placeholder="Leave blank for auto generated">
+    </div>
+    <div class="form-tips">
+        <b>Note:</b>The "REST Proxy" is a URL in the for http://rest-proxy-hostname:8082
+    </div>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('rest-proxy', {
+        category: 'config',
+        defaults: {
+            proxy: { value:"",required:true },
+            clientid: { value:"" }
+        },
+        label: function() {
+            if (this.proxy == "") { this.proxy = "http://localhost:8092"; }
+            return (this.clientid?this.clientid+"@":"")+this.proxy;
+        }
+    });
+</script>
+
