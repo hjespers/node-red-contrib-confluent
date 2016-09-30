@@ -29,7 +29,7 @@ Drag either confluent node to the canvas and double click to configure the topic
 
 Click on the pencil icon to the right of the rest-proxy selection box to configure a rest-proxy URL if one does not already exist.
 
-<img src="https://github.com/hjespers/node-red-contrib-rdkafka/blob/master/images/confluent-rest-proxy-config.png">
+<img src="https://github.com/hjespers/node-red-contrib-confluent/blob/master/images/confluent-rest-proxy-config.png">
 
 Publish and subscribe just as you would with the mqtt node with some small differences namely:
 <ul>
