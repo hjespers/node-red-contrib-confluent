@@ -41,10 +41,12 @@ module.exports = function(RED) {
                                     payload: msgs[i].value.toString(),
                                     topic: node.topic,
                                     offset: msgs[i].offset,
-                                    key: msgs[i].key.toString(),
                                     partition: msgs[i].partition,
                                     size: msgs[i].size
                                 };
+                                if (msg[i].key) {
+                                    msg.key = msgs[i].key.toString();
+                                }
                                 try {
                                     node.send(msg);
                                 } catch(e) {

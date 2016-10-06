@@ -20,7 +20,9 @@
 </script>
 
 <script type="text/x-red" data-help-name="confluent in">
-    <p>Confluent input node. Connects to a rest proxy and subscribes to the specified topic. The topic may contain wildcard regular expression.
+    <p>Confluent input node. Connects to a rest proxy and subscribes to the specified topic.
+    <p>Contents of the Kafka messages will be put into the outgoing <code>msg.payload</code> field
+    <p>Other Kafka metadata is provided in the <code>msg.key</code>, <code>msg.partition</code>, <code>msg.offset</code>, <code>msg._msgid</code>, and <code>msg.topic</code> fields
     </script>
 
 <script type="text/javascript">
@@ -71,11 +73,11 @@
 </script>
 
 <script type="text/x-red" data-help-name="confluent out">
-    <p>Connects to a Confluent REST proxy and publishes messages.
-    <p>Contents of the Kafka message will be the contents of the incoming <b>msg.payload</b> field
-    <p>If you want to publish Kafka messages in Key,Value format then either specify a static key value in the config dialog or (if blank) include a key string in the incoming <b>msg.key</b> field
-    <p>The Kafka topic to which messages are published can be specificied as a static topic value in the config dialog or (if blank) included as a topic string in the incoming <b>msg.topic</b> field
-    <p>The Kafka partition to which messages are published can be specificied as a static partition value in the config dialog or (if set to -1) included as a topic string in the incoming <b>msg.partition</b> field. If no partition is specified via either method then the default (round robin) Kafka partitioner is used.
+    <p>Confluent output node. Connects to a Confluent REST proxy and publishes messages.
+    <p>Contents of the Kafka message will be the contents of the incoming <code>msg.payload</code> field
+    <p>If you want to publish Kafka messages in Key,Value format then either specify a static key value in the config dialog or (if blank) include a key string in the incoming <code>msg.key</code> field
+    <p>The Kafka topic to which messages are published can be specificied as a static topic value in the config dialog or (if blank) included as a topic string in the incoming <code>msg.topic</code> field
+    <p>The Kafka partition to which messages are published can be specificied as a static partition value in the config dialog or (if set to -1) included as a topic string in the incoming <code>msg.partition</code> field. If no partition is specified via either method then the default (round robin) Kafka partitioner is used.
     <p>If any values are set in both the configuration window and in the incoming message, then the configuration dialog value has precedence.
 </script>
 
