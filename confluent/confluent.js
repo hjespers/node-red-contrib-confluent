@@ -44,7 +44,7 @@ module.exports = function(RED) {
                                     partition: msgs[i].partition,
                                     size: msgs[i].size
                                 };
-                                if (msg[i].key) {
+                                if (msgs[i].key) {
                                     msg.key = msgs[i].key.toString();
                                 }
                                 try {
