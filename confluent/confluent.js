@@ -41,7 +41,7 @@ module.exports = function(RED) {
                                     payload: msgs[i].value.toString(),
                                     topic: node.topic,
                                     offset: msgs[i].offset,
-                                    key: msgs[i].key,
+                                    key: msgs[i].key.toString(),
                                     partition: msgs[i].partition,
                                     size: msgs[i].size
                                 };
@@ -53,12 +53,18 @@ module.exports = function(RED) {
                                 }
                             }
                         });
+
                         stream.on('error', function(err) {
                             console.error('[confluent] Error in our kafka input stream');
                             console.error(err);
                         });
 
- 
+                        stream.on('close', function() {
+                            consumer_instance.shutdown(function() {
+                                util.log("[confluent] consumer shutdown complete.");
+                            });
+                        });
+
                     });                
                 } catch(e) {
                     util.log('[confluent] Error creating consumer:' +e);
@@ -67,9 +73,6 @@ module.exports = function(RED) {
 
                 this.on('close', function() {
                     //cleanup
-                    consumer_instance.shutdown(function() {
-                        console.log("Shutdown complete.");
-                    });
                 });
 
             } else {
@@ -87,7 +90,7 @@ module.exports = function(RED) {
         this.topic = n.topic;
         this.proxy = n.proxy;
         this.key = n.key;
-        this.partition = n.partition;
+        this.partition = Number(n.partition);
         this.proxyConfig = RED.nodes.getNode(this.proxy);
 
         if (this.proxyConfig) {
@@ -102,30 +105,45 @@ module.exports = function(RED) {
             // });
 
             this.on("input", function(msg) {
-                if (msg == null || (msg.topic == "" && this.topic == "")) {
+                var partition, key, topic;
+
+                //set the partition  
+                if (Number.isInteger(this.partition) && this.partition >= 0){
+                    partition = this.partition;
+                } else if(Number.isInteger(msg.partition) && Number(msg.partition) >= 0) {
+                    partition = Number(msg.partition);
+                } 
+
+                //set the key
+                if ((typeof this.key === 'string') && this.key !== "") {
+                    key = this.key;
+                } else if ((typeof msg.key === 'string') && msg.key !== "") {
+                    key = msg.key;
+                } else {
+                    console.log('key is of type ' + typeof this.key);
+                }
+
+                //set the topic
+                if (this.topic === "" && msg.topic !== "") {
+                    topic = msg.topic;
+                } else {
+                    topic = this.topic;
+                }
+
+                //publish the message
+                if (msg === null || topic === "") {
                     util.log("[confluent] request to send a NULL message or NULL topic on session: " + this.client.ref + " object instance: " + this.client[("_instances")]);
-                } else if (msg != null && msg.topic != "" && this.topic == "") {
-                    // use the topic specified on the message since one is not configured 
+                } else if (msg !== null && topic !== "" ) {
 
                     // add support for keys and partitions
                     // topic.produce({'key': 'key1', 'value': 'msg1', 'partition': 0}, function(err,res){});
-                    kafka.topic(msg.topic).produce(msg.payload.toString(), function(err,res){
+                    kafka.topic(topic).produce({'key': key, 'value': msg.payload.toString(), 'partition': partition}, function(err,res){
                         if (err) {
                             console.error('[confluent] Error publishing message to rest proxy');
                             console.error(err);
                         }
                     });
-
-                } else if (msg != null && this.topic != "") {
-                    // use the configures topic since it takes presedence
- 
-                    kafka.topic(this.topic).produce(msg.payload.toString(), function(err,res){
-                        if (err) {
-                            console.error('[confluent] Error publishing message to rest proxy');
-                            console.error(err);
-                        }
-                    });
-                }
+                } 
             });
         } else {
             this.error("[confluent] missing proxy configuration");

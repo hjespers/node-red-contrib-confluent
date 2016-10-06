@@ -71,7 +71,12 @@
 </script>
 
 <script type="text/x-red" data-help-name="confluent out">
-    <p>Connects to a Confluent REST proxy and publishes <b>msg.key</b> and <b>msg.payload</b> to <b>msg.topic</b> and <b>msg.partition</b> OR to the topic, partition, and key specified in the configuration window. Any values in the configuration window have precedence.
+    <p>Connects to a Confluent REST proxy and publishes messages.
+    <p>Contents of the Kafka message will be the contents of the incoming <b>msg.payload</b> field
+    <p>If you want to publish Kafka messages in Key,Value format then either specify a static key value in the config dialog or (if blank) include a key string in the incoming <b>msg.key</b> field
+    <p>The Kafka topic to which messages are published can be specificied as a static topic value in the config dialog or (if blank) included as a topic string in the incoming <b>msg.topic</b> field
+    <p>The Kafka partition to which messages are published can be specificied as a static partition value in the config dialog or (if set to -1) included as a topic string in the incoming <b>msg.partition</b> field. If no partition is specified via either method then the default (round robin) Kafka partitioner is used.
+    <p>If any values are set in both the configuration window and in the incoming message, then the configuration dialog value has precedence.
 </script>
 
 <script type="text/javascript">
@@ -81,7 +86,7 @@
          name: {value:""},
          topic: {value:""},
          key: {value:""},
-         partition: {value:null},
+         partition: {value:-1},
          proxy: {type:"rest-proxy", required:true}
        },
        color:"#F07430",
