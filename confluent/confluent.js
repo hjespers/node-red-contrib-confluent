@@ -142,11 +142,9 @@ module.exports = function(RED) {
                     // topic.produce({'key': 'key1', 'value': 'msg1', 'partition': 0}, function(err,res){});
                     kafka.topic(topic).produce({'key': key, 'value': msg.payload.toString(), 'partition': partition}, function(err,res){
                         if (err) {
-                            console.error('[confluent] Error publishing message to rest proxy');
+                            util.log('[confluent] Error publishing message to rest proxy');
                             node.error(err);
                         } else if (res) {
-                            //TODO send response as output so people have offset info
-                            console.log('Producer reponse = ' + util.inspect(res));
                             node.send(res);
                         }
                     });
