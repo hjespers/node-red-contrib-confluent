@@ -40,10 +40,10 @@
        outputs:1,
        icon: "confluent-logo-blue.png",
        label: function() {
-       return this.name||this.topic||"confluent";
+          return this.name||this.topic||"subscribe";
        },
        labelStyle: function() {
-       return this.name?"node_label_italic":"";
+          return this.name?"node_label_italic":"";
        }
     });
                            
@@ -79,6 +79,7 @@
     <p>The Kafka topic to which messages are published can be specificied as a static topic value in the config dialog or (if blank) included as a topic string in the incoming <code>msg.topic</code> field
     <p>The Kafka partition to which messages are published can be specificied as a static partition value in the config dialog or (if set to -1) included as a topic string in the incoming <code>msg.partition</code> field. If no partition is specified via either method then the default (round robin) Kafka partitioner is used.
     <p>If any values are set in both the configuration window and in the incoming message, then the configuration dialog value has precedence.
+    <p>The output of this node includes key and value schema_id and <code>offsets</code> which is an array of objects containing the partition, offset, error_code, and error for each of the messages published. For example <code>{ offsets: [ { partition: 0, offset: 1071, error_code: null, error: null } ], key_schema_id: null, value_schema_id: null }</code>
 </script>
 
 <script type="text/javascript">
@@ -93,14 +94,14 @@
        },
        color:"#F07430",
        inputs:1,
-       outputs:0,
+       outputs:1,
        icon: "confluent-logo-blue.png",
        align: "right",
        label: function() {
-       return this.name||this.topic||"confluent";
+          return this.name||this.topic||"publish";
        },
        labelStyle: function() {
-       return this.name?"node_label_italic":"";
+          return this.name?"node_label_italic":"";
        }
     });
 </script>
@@ -130,6 +131,49 @@
             if (this.proxy == "") { this.proxy = "http://localhost:8092"; }
             return (this.clientid?this.clientid+"@":"")+this.proxy;
         }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="confluent metadata">
+    <div class="form-row">
+        <label for="node-input-proxy"><i class="icon-tag"></i> REST Proxy</label>
+        <input type="text" id="node-input-proxy">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="icon-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="confluent metadata">
+    <p>Confluent metadata node. Connects to a Confluent REST proxy and queries for metadata about brokers and topics.
+    <p>The Kafka topic about which metadata is queried can be specificied as a static topic value in the config dialog or (if blank) included as a topic string in the incoming <code>msg.topic</code> field
+    <p>If any values are set in both the configuration window and in the incoming message, then the configuration dialog value has precedence.
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('confluent metadata',{
+       category: 'output',
+       defaults: {
+         name: {value:""},
+         topic: {value:""},
+         proxy: {type:"rest-proxy", required:true}
+       },
+       color:"#F07430",
+       inputs:1,
+       outputs:1,
+       icon: "confluent-logo-blue.png",
+       align: "right",
+       label: function() {
+          return this.name||this.topic||"metadata";;
+       },
+       labelStyle: function() {
+          return this.name?"node_label_italic":"";
+       },
+       paletteLabel: "metadata"
     });
 </script>
 

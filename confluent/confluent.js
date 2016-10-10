@@ -94,6 +94,7 @@ module.exports = function(RED) {
         this.key = n.key;
         this.partition = Number(n.partition);
         this.proxyConfig = RED.nodes.getNode(this.proxy);
+        var node = this;
 
         if (this.proxyConfig) {
 
@@ -134,7 +135,7 @@ module.exports = function(RED) {
 
                 //publish the message
                 if (msg === null || topic === "") {
-                    util.log("[confluent] request to send a NULL message or NULL topic on session: " + this.client.ref + " object instance: " + this.client[("_instances")]);
+                    node.error("request to send a NULL message or NULL topic");
                 } else if (msg !== null && topic !== "" ) {
 
                     // add support for keys and partitions
@@ -142,18 +143,81 @@ module.exports = function(RED) {
                     kafka.topic(topic).produce({'key': key, 'value': msg.payload.toString(), 'partition': partition}, function(err,res){
                         if (err) {
                             console.error('[confluent] Error publishing message to rest proxy');
-                            console.error(err);
+                            node.error(err);
+                        } else if (res) {
+                            //TODO send response as output so people have offset info
+                            console.log('Producer reponse = ' + util.inspect(res));
+                            node.send(res);
                         }
                     });
                 } 
             });
+
+            this.on('close', function() {
+                //cleanup
+            });
+
         } else {
             this.error("[confluent] missing proxy configuration");
         }
-        this.on('close', function() {
-            //cleanup
-        });
+
     }
     RED.nodes.registerType("confluent out", ConfluentOutNode);
+
+
+    function ConfluentMetaDataNode(n) {
+        RED.nodes.createNode(this, n);
+        this.topic = n.topic;
+        this.proxy = n.proxy;
+        this.requestType = n.requestType;
+        this.proxyConfig = RED.nodes.getNode(this.proxy);
+        var node = this;
+
+        if (this.proxyConfig) {
+
+            var kafka = new KafkaRest({ 'url': this.proxyConfig.proxy });
+            
+
+            this.on("input", function(msg) {
+                var topic;
+                //set the topic
+                if (this.topic === "" && msg.topic !== "") {
+                    topic = msg.topic;
+                } else if (this.topic === "" && msg.topic === "") {
+                    //util.log('[confluent] Metadata request does not contain topic in node config or inbound msg.topic');
+                    node.error( new Error('Metadata request does not contain topic'));
+                    return;
+                } else {
+                    topic = this.topic;
+                }
+
+                // kafka.brokers is a Brokers instance, list() returns a list of Broker instances
+                //kafka.brokers.list(function(err, brokers) {
+                //    for(var i = 0; i < brokers.length; i++)
+                //        console.log(brokers[i].toString());
+                //});
+
+                // get metadata about a topic
+                kafka.topics.get(topic, function(err, res) {
+                    if (err) {
+                        util.log("[confluent] Failed to get metadata for topic " + topic + ": " + err);
+                        node.error(err);
+                    }
+                    else {
+                        //console.log(topic.toString() + " (raw: " + JSON.stringify(topic.raw) + ")");
+                        //console.log('got metadata response = ' + res.toString());
+                        var newmsg = {};
+                        newmsg.topic = res.name;
+                        newmsg.partitions = res.raw.partitions.length;
+                        newmsg.payload = res.raw;
+                        node.send(newmsg);
+                    }
+                });               
+            });
+        } else {
+            node.error("missing required proxy configuration");
+        }
+    }
+    RED.nodes.registerType("confluent metadata", ConfluentMetaDataNode);
 
 };
