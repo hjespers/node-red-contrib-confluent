@@ -25,9 +25,9 @@ module.exports = function(RED) {
             var kafka = new KafkaRest({ 'url': this.proxyConfig.proxy });
 
             // subscribe to kafka topic (if provided), otherwise print error message
-            if (this.topic) {
+            if (this.topic && this.cgroup) {
                 try {
-                    kafka.consumer("my-consumer-group").join({
+                    kafka.consumer(this.cgroup).join({
                         "format": "binary",
                         "auto.commit.enable": this.autocommit,
                     }, function(err, consumer_instance) {
@@ -35,15 +35,20 @@ module.exports = function(RED) {
                         stream = consumer_instance.subscribe(node.topic);
 
                         stream.on('data', function(msgs) {
+
                             for(var i = 0; i < msgs.length; i++) {
                                 //console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
                                 var msg = {
-                                    payload: msgs[i].value.toString(),
                                     topic: node.topic,
                                     offset: msgs[i].offset,
                                     partition: msgs[i].partition,
                                     size: msgs[i].size
                                 };
+                                if (msgs[i].value) {
+                                    msg.payload = msgs[i].value.toString();
+                                } else {
+                                    msg.payload = ""; //in case of msg with null value
+                                }
                                 if (msgs[i].key) {
                                     msg.key = msgs[i].key.toString();
                                 }
@@ -61,7 +66,7 @@ module.exports = function(RED) {
                             console.error(err);
                         });
 
-                        stream.on('close', function() {
+                        node.on('close', function() {
                             consumer_instance.shutdown(function() {
                                 util.log("[confluent] consumer shutdown complete.");
                             });
@@ -73,15 +78,16 @@ module.exports = function(RED) {
                 }
                 util.log('[confluent] Created consumer on topic = ' + this.topic); 
 
-                this.on('close', function() {
+                //this.on('close', function() {
                     //cleanup
-                });
+                    //console.log('Close was triggered');
+                //});
 
             } else {
-                this.error('missing input topic');
+                node.error('missing required input topic or consumer group');
             }
         } else {
-            this.error("missing proxy configuration");
+            node.error("missing proxy configuration");
         }
 
     }
@@ -123,7 +129,7 @@ module.exports = function(RED) {
                 } else if ((typeof msg.key === 'string') && msg.key !== "") {
                     key = msg.key;
                 } else {
-                    console.log('key is of type ' + typeof this.key);
+                    key = null;
                 }
 
                 //set the topic
