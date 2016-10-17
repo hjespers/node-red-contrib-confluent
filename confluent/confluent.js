@@ -78,11 +78,6 @@ module.exports = function(RED) {
                 }
                 util.log('[confluent] Created consumer on topic = ' + this.topic); 
 
-                //this.on('close', function() {
-                    //cleanup
-                    //console.log('Close was triggered');
-                //});
-
             } else {
                 node.error('missing required input topic or consumer group');
             }
