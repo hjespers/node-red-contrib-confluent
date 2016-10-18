@@ -37,7 +37,7 @@ module.exports = function(RED) {
                         stream.on('data', function(msgs) {
 
                             for(var i = 0; i < msgs.length; i++) {
-                                //console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
+                                console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
                                 var msg = {
                                     topic: node.topic,
                                     offset: msgs[i].offset,
@@ -109,7 +109,7 @@ module.exports = function(RED) {
             // });
 
             this.on("input", function(msg) {
-                var partition, key, topic;
+                var partition, key, topic, value;
 
                 //set the partition  
                 if (Number.isInteger(this.partition) && this.partition >= 0){
@@ -138,10 +138,13 @@ module.exports = function(RED) {
                 if (msg === null || topic === "") {
                     node.error("request to send a NULL message or NULL topic");
                 } else if (msg !== null && topic !== "" ) {
-
-                    // add support for keys and partitions
-                    // topic.produce({'key': 'key1', 'value': 'msg1', 'partition': 0}, function(err,res){});
-                    kafka.topic(topic).produce({'key': key, 'value': msg.payload.toString(), 'partition': partition}, function(err,res){
+                    //handle different payload types including JSON object
+                    if( typeof msg.payload === 'object') {
+                        value = JSON.stringify(msg.payload);
+                    } else {
+                        value = msg.payload.toString();
+                    }
+                    kafka.topic(topic).produce({'key': key, 'value': value, 'partition': partition}, function(err,res){
                         if (err) {
                             util.log('[confluent] Error publishing message to rest proxy');
                             node.error(err);
