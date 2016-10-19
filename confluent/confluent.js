@@ -37,7 +37,7 @@ module.exports = function(RED) {
                         stream.on('data', function(msgs) {
 
                             for(var i = 0; i < msgs.length; i++) {
-                                console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
+                                //console.log("Got a message: key=" + msgs[i].key + " value=" + msgs[i].value + " partition=" + msgs[i].partition);
                                 var msg = {
                                     topic: node.topic,
                                     offset: msgs[i].offset,
